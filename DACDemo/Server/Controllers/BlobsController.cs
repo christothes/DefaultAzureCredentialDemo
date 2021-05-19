@@ -46,15 +46,19 @@ namespace DACDemo.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateBlob()
         {
+            string name;
             try
             {
                 var user = await _graphServiceClient.Me.Request().GetAsync();
-                var bc = _blobClient.GetBlobClient(user.DisplayName);
-                await bc.UploadAsync(new BinaryData("").ToStream(), true);
-            } catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
+                name = user.DisplayName;
             }
+            catch
+            {
+                name = "Managed Identity";
+            }
+            var bc = _blobClient.GetBlobClient(name);
+            await bc.UploadAsync(new BinaryData("").ToStream(), true);
+
             return Ok("Created Successfully.");
         }
     }

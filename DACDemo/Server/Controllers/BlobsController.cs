@@ -54,7 +54,7 @@ namespace DACDemo.Server.Controllers
             }
             catch
             {
-                name = "Managed Identity";
+                name = "dac-demo-web";
             }
             var bc = _blobClient.GetBlobClient(name);
             await bc.UploadAsync(new BinaryData("").ToStream(), true);

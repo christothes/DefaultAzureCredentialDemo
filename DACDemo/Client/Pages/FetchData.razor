@@ -20,7 +20,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in blobs)
+            @foreach (var forecast in blobs.OrderByDescending(b => b.LastModified))
             {
                 <tr>
                     <td>@forecast.LastModified.ToLocalTime().ToString()</td>

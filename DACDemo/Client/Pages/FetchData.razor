@@ -1,0 +1,53 @@
+﻿@page "/fetchdata"
+@using DACDemo.Shared
+@inject HttpClient Http
+
+<h1>DefaultAzureCredential Demo</h1>
+
+<button @onclick="Create">Create New Blob</button>
+
+@if (blobs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>LastModified</th>
+                <th>Blob Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in blobs)
+            {
+                <tr>
+                    <td>@forecast.LastModified.ToShortDateString()</td>
+                    <td>@forecast.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<BlobDetails> blobs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Create()
+    {
+        await Http.GetAsync("Blobs/CreateBlob");
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        blobs = await Http.GetFromJsonAsync<List<BlobDetails>>("Blobs/ListBlobs");
+    }
+
+}

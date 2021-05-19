@@ -46,10 +46,16 @@ namespace DACDemo.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateBlob()
         {
-            var user = await _graphServiceClient.Me.Request().GetAsync();
-            var bc = _blobClient.GetBlobClient(user.DisplayName);
-            await bc.UploadAsync(new BinaryData("").ToStream(), true);
-            return Ok();
+            try
+            {
+                var user = await _graphServiceClient.Me.Request().GetAsync();
+                var bc = _blobClient.GetBlobClient(user.DisplayName);
+                await bc.UploadAsync(new BinaryData("").ToStream(), true);
+            } catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            return Ok("Created Successfully.");
         }
     }
 }

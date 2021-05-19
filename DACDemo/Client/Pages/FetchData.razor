@@ -23,7 +23,7 @@ else
             @foreach (var forecast in blobs)
             {
                 <tr>
-                    <td>@forecast.LastModified.ToShortDateString()</td>
+                    <td>@forecast.LastModified.ToLocalTime().ToString()</td>
                     <td>@forecast.Name</td>
                 </tr>
             }

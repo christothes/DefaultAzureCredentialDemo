@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using DACDemo.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 
 namespace DACDemo.Server.Controllers
 {
@@ -12,18 +14,15 @@ namespace DACDemo.Server.Controllers
     [Route("[controller]/[action]")]
     public class BlobsController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
         private readonly ILogger<BlobsController> _logger;
         private readonly BlobContainerClient _blobClient;
+        private readonly GraphServiceClient _graphServiceClient;
 
-        public BlobsController(ILogger<BlobsController> logger, BlobContainerClient blobClient)
+        public BlobsController(ILogger<BlobsController> logger, BlobContainerClient blobClient, GraphServiceClient graphServiceClient)
         {
             _logger = logger;
             _blobClient = blobClient;
+            _graphServiceClient = graphServiceClient;
         }
 
         [HttpGet]
@@ -34,7 +33,7 @@ namespace DACDemo.Server.Controllers
             {
                 await foreach (var blob in _blobClient.GetBlobsAsync())
                 {
-                    result.Add(new BlobDetails { Name = blob.Name, LastModified = DateTime.Parse(blob.Metadata["LastModified"]) });
+                    result.Add(new BlobDetails { Name = blob.Name, LastModified = blob.Properties.LastModified.Value.DateTime });
                 }
             }
             catch (Exception ex)
@@ -45,8 +44,11 @@ namespace DACDemo.Server.Controllers
         }
 
         [HttpGet]
-        public IActionResult CreateBlob()
+        public async Task<IActionResult> CreateBlob()
         {
+            var user = await _graphServiceClient.Me.Request().GetAsync();
+            var bc = _blobClient.GetBlobClient(user.DisplayName);
+            await bc.UploadAsync(new BinaryData("").ToStream(), true);
             return Ok();
         }
     }

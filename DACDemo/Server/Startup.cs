@@ -1,14 +1,15 @@
 using System;
-using System.Linq;
+using System.Net.Http.Headers;
+using Azure.Core;
+using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Graph;
 
 namespace DACDemo.Server
 {
@@ -28,7 +29,20 @@ namespace DACDemo.Server
 
             services.AddControllersWithViews();
             services.AddRazorPages();
-            services.AddSingleton(new BlobContainerClient(new Uri(Configuration["BlobUri"]), new DefaultAzureCredential()));
+            var options = new DefaultAzureCredentialOptions { ExcludeVisualStudioCodeCredential = true, ExcludeVisualStudioCredential = true };
+            var cred = new DefaultAzureCredential(options);
+            services.AddSingleton(new BlobContainerClient(new Uri(Configuration["BlobUri"]), cred));
+
+            var rc = new TokenRequestContext(new string[] { "https://graph.microsoft.com/.default" });
+            GraphServiceClient graphServiceClient = new GraphServiceClient(new DelegateAuthenticationProvider((requestMessage) =>
+            {
+                requestMessage
+                    .Headers
+                    .Authorization = new AuthenticationHeaderValue("Bearer", cred.GetToken(rc).Token);
+
+                return Task.CompletedTask;
+            }));
+            services.AddSingleton(graphServiceClient);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

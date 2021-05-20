@@ -27,6 +27,22 @@ namespace DACDemo.Server.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> ClearBlobs()
+        {
+            try
+            {
+                await foreach (var blob in _blobClient.GetBlobsAsync(BlobTraits.Metadata))
+                {
+                    await _blobClient.DeleteBlobAsync(blob.Name);
+                }
+            }
+            catch 
+            {
+            }
+            return Ok("Deleted all Blobs");
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ListBlobs()
         {
             var result = new List<BlobDetails>();

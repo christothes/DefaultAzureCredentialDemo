@@ -6,6 +6,7 @@
 
 <button @onclick="Create">Create New Blob</button>
 <button @onclick="Load">Refresh</button>
+<button @onclick="Clear">Clear</button>
 
 @if (blobs == null)
 {
@@ -41,6 +42,12 @@ else
     {
         await Load();
     }
+    private async Task Clear()
+    {
+        await Http.GetAsync("Blobs/ClearBlobs");
+        await Load();
+    }
+
 
     private async Task Create()
     {

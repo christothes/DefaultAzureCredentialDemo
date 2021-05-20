@@ -63,7 +63,9 @@ namespace DACDemo.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateBlob()
         {
+            #region Init
             string name = "dac-demo-web";
+            #endregion
             try
             {
                 var user = await _graphServiceClient.Me.Request().GetAsync();

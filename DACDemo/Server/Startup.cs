@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph;
+using Azure.Core.Diagnostics;
 
 namespace DACDemo.Server
 {
@@ -27,25 +28,34 @@ namespace DACDemo.Server
         public void ConfigureServices(IServiceCollection services)
         {
             var rc = new TokenRequestContext(new string[] { "https://graph.microsoft.com/.default" });
+            AzureEventSourceListener.CreateConsoleLogger();
             services.AddControllersWithViews();
             services.AddRazorPages();
-            var options = new DefaultAzureCredentialOptions { ExcludeVisualStudioCodeCredential = true, ExcludeVisualStudioCredential = true };
-            
+
+            // Configure the credential options
+            var options = new DefaultAzureCredentialOptions
+            {
+                ExcludeVisualStudioCodeCredential = true,
+                ExcludeVisualStudioCredential = true,
+                Diagnostics = { IsLoggingEnabled = true }
+            };
+
             // Create a DefaultAzureCredential
             var cred = new DefaultAzureCredential(options);
-            
+
             // Initialize a BlobContainerClient with the credential.
             services.AddSingleton(new BlobContainerClient(new Uri(Configuration["BlobUri"]), cred));
 
             // Initialize a Graph client with the credential.
-            GraphServiceClient graphServiceClient = new GraphServiceClient(new DelegateAuthenticationProvider((requestMessage) =>
-            {
-                requestMessage
-                    .Headers
-                    .Authorization = new AuthenticationHeaderValue("Bearer", cred.GetToken(rc).Token);
+            GraphServiceClient graphServiceClient = new GraphServiceClient(
+                new DelegateAuthenticationProvider((requestMessage) =>
+                {
+                    requestMessage
+                        .Headers
+                        .Authorization = new AuthenticationHeaderValue("Bearer", cred.GetToken(rc).Token);
 
-                return Task.CompletedTask;
-            }));
+                    return Task.CompletedTask;
+                }));
             services.AddSingleton(graphServiceClient);
         }
 

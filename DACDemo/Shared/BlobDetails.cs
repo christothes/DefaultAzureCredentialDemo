@@ -7,5 +7,7 @@ namespace DACDemo.Shared
         public DateTime LastModified { get; set; }
 
         public string Name { get; set; }
+
+        public string UploadedBy { get; set; }
     }
 }

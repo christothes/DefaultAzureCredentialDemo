@@ -16,16 +16,18 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>LastModified</th>
                 <th>Blob Name</th>
+                <th>Uploaded By</th>
+                <th>Created On</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var forecast in blobs.OrderByDescending(b => b.LastModified))
             {
                 <tr>
-                    <td>@forecast.LastModified.ToLocalTime().ToString()</td>
                     <td>@forecast.Name</td>
+                    <td>@forecast.UploadedBy</td>
+                    <td>@forecast.LastModified.ToLocalTime().ToString()</td>
                 </tr>
             }
         </tbody>

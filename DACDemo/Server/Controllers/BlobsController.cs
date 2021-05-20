@@ -14,6 +14,7 @@ namespace DACDemo.Server.Controllers
     [Route("[controller]/[action]")]
     public class BlobsController : ControllerBase
     {
+        private const string UploadedBy = "UploadedBy";
         private readonly ILogger<BlobsController> _logger;
         private readonly BlobContainerClient _blobClient;
         private readonly GraphServiceClient _graphServiceClient;
@@ -31,9 +32,9 @@ namespace DACDemo.Server.Controllers
             var result = new List<BlobDetails>();
             try
             {
-                await foreach (var blob in _blobClient.GetBlobsAsync())
+                await foreach (var blob in _blobClient.GetBlobsAsync(BlobTraits.Metadata))
                 {
-                    result.Add(new BlobDetails { Name = blob.Name, LastModified = blob.Properties.LastModified.Value.DateTime });
+                    result.Add(new BlobDetails { Name = blob.Name, LastModified = blob.Properties.LastModified.Value.DateTime, UploadedBy = blob.Metadata[UploadedBy] });
                 }
             }
             catch (Exception ex)
@@ -46,18 +47,17 @@ namespace DACDemo.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateBlob()
         {
-            string name;
+            string name = "dac-demo-web";
             try
             {
                 var user = await _graphServiceClient.Me.Request().GetAsync();
                 name = user.DisplayName;
             }
             catch
-            {
-                name = "dac-demo-web";
-            }
-            var bc = _blobClient.GetBlobClient(name);
+            { }
+            var bc = _blobClient.GetBlobClient(Guid.NewGuid().ToString());
             await bc.UploadAsync(new BinaryData("").ToStream(), true);
+            await bc.SetMetadataAsync(new Dictionary<string, string> { { UploadedBy, name } });
 
             return Ok("Created Successfully.");
         }

@@ -26,14 +26,18 @@ namespace DACDemo.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-
+            var rc = new TokenRequestContext(new string[] { "https://graph.microsoft.com/.default" });
             services.AddControllersWithViews();
             services.AddRazorPages();
             var options = new DefaultAzureCredentialOptions { ExcludeVisualStudioCodeCredential = true, ExcludeVisualStudioCredential = true };
+            
+            // Create a DefaultAzureCredential
             var cred = new DefaultAzureCredential(options);
+            
+            // Initialize a BlobContainerClient with the credential.
             services.AddSingleton(new BlobContainerClient(new Uri(Configuration["BlobUri"]), cred));
 
-            var rc = new TokenRequestContext(new string[] { "https://graph.microsoft.com/.default" });
+            // Initialize a Graph client with the credential.
             GraphServiceClient graphServiceClient = new GraphServiceClient(new DelegateAuthenticationProvider((requestMessage) =>
             {
                 requestMessage
